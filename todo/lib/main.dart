@@ -103,27 +103,22 @@ class _MyHomePageState extends State<MyHomePage> {
                 children: List.generate(undone.length, (_idx){
                   Todo t = undone[_idx];
 
-                  return Container(
-                    decoration: BoxDecoration(
-                      color: Color(t.color),
-                      borderRadius: BorderRadius.circular(16)
-                    ),
-                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                    margin: EdgeInsets.symmetric(vertical: 8, horizontal: 20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(t.title, style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold)),
-                            Text(t.done == 0 ? "미완료" : "완료", style: TextStyle(color: Colors.white)),
-                          ],
-                        ),
-                        Container(height: 12),
-                        Text(t.memo, style: TextStyle(color: Colors.white)),
-                      ],
-                    ),
+                  return InkWell(
+                    child: TodoCardWidget(t: t),
+                    onTap: (){
+                      setState((){
+                        if(t.done == 0){
+                          t.done = 1;
+                        }else{
+                          t.done = 0;
+                        }
+                      });
+                    },
+                    onLongPress: () async {
+                      Todo todo = await Navigator.of(context).push(
+                          MaterialPageRoute(builder: (ctx) => TodoWritePage(todo: t)));
+                      setState(() {});
+                    },
                   );
                 }),
               )
@@ -143,28 +138,22 @@ class _MyHomePageState extends State<MyHomePage> {
                 child: Column(
                   children: List.generate(done.length, (_idx){
                     Todo t = done[_idx];
-
-                    return Container(
-                      decoration: BoxDecoration(
-                          color: Color(t.color),
-                          borderRadius: BorderRadius.circular(16)
-                      ),
-                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                      margin: EdgeInsets.symmetric(vertical: 8, horizontal: 20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(t.title, style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold)),
-                              Text(t.done == 0 ? "미완료" : "완료", style: TextStyle(color: Colors.white)),
-                            ],
-                          ),
-                          Container(height: 12),
-                          Text(t.memo, style: TextStyle(color: Colors.white)),
-                        ],
-                      ),
+                    return InkWell(
+                      child: TodoCardWidget(t: t),
+                      onTap: (){
+                        setState((){
+                          if(t.done == 0){
+                            t.done = 1;
+                          }else{
+                            t.done = 0;
+                          }
+                        });
+                      },
+                      onLongPress: () async {
+                        Todo todo = await Navigator.of(context).push(
+                            MaterialPageRoute(builder: (ctx) => TodoWritePage(todo: t)));
+                        setState(() {});
+                      },
                     );
                   }),
                 )
@@ -185,4 +174,35 @@ class _MyHomePageState extends State<MyHomePage> {
 
     );
   }
+}
+
+class TodoCardWidget extends StatelessWidget {
+  final Todo t;
+  TodoCardWidget({Key? key, required this.t}): super(key: key);
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+          color: Color(t.color),
+          borderRadius: BorderRadius.circular(16)
+      ),
+      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      margin: EdgeInsets.symmetric(vertical: 8, horizontal: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(t.title, style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold)),
+              Text(t.done == 0 ? "미완료" : "완료", style: TextStyle(color: Colors.white)),
+            ],
+          ),
+          Container(height: 12),
+          Text(t.memo, style: TextStyle(color: Colors.white)),
+        ],
+      ),
+    );
+  }
+
 }

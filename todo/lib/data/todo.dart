@@ -4,8 +4,9 @@ class Todo {
   String memo;
   String category;
   int color;
-  int done;
+  int? done;
   int date;
+  int? id;
 
-  Todo({required this.title, required this.memo, required this.category, required this.color, required this.done, required this.date});
+  Todo({required this.title, required this.memo, required this.category, required this.color, this.done, required this.date, this.id});
 }
