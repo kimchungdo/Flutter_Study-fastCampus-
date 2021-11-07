@@ -42,7 +42,7 @@ class DatabaseHelper {
   Future _onUpgrade(Database db, int oldVersion, int newVersion) async {}
 
   // 투두 입력, 수정, 불러오기
-  Future<int> insertTodo(Diary diary) async {
+  Future<int> insertDiary(Diary diary) async {
     Database db = await instance.database;
 
     await getDiaryByDate(diary.date);

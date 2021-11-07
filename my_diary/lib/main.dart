@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:my_diary/write.dart';
+
+import 'data/database.dart';
+import 'data/diary.dart';
+import 'data/util.dart';
 
 void main() {
   runApp(const MyApp());
@@ -29,16 +34,55 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
 
   int selectIndex = 0;
+  final dbHelper = DatabaseHelper.instance;
+  Diary todayDiary;
+
+  List<String> statusImg = [
+    "assets/img/ico-weathe-02-r.png",
+    "assets/img/ico-weather_3.png",
+    "assets/img/ico-weather-03.png",
+  ];
+
+  void getTodayDiary() async{
+    List<Diary> diary = await dbHelper.getDiaryByDate(Utils.getFormatTime(DateTime.now()));
+    if(diary.isNotEmpty){
+      todayDiary = diary.first;
+    }
+    setState(() {
+      //
+    });
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    getTodayDiary();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(""),
-      ),
       body: Container(child: getPage()),
       floatingActionButton: FloatingActionButton(
-        onPressed: (){},
+        onPressed: () async {
+          Diary _d;
+          if(todayDiary != null){
+            _d = todayDiary;
+          }else{
+            _d = Diary(
+                date: Utils.getFormatTime(DateTime.now()),
+                title:"",
+                memo: "",
+                status: 0,
+                image: "assets/img/b1.jpg"
+            );
+          }
+          await Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => DiaryWritePage(
+            diary : _d,
+          )));
+          getTodayDiary();
+        },
         tooltip: 'Increment',
         child: Icon(Icons.add),
       ),
@@ -68,7 +112,48 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget getTodayPage(){
-    return Container();
+    if(todayDiary == null){
+      return Container(
+        child: Text("일기 작성을 부탁합니다"),
+      );
+    }
+    return Container(
+      child: Stack(
+        children: [
+          Positioned.fill(child: Image.asset(todayDiary.image, fit: BoxFit.cover),),
+          Positioned.fill(child: ListView(
+            children: [
+              Container(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text("${DateTime.now().month}.${DateTime.now().day}", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),),
+                    Image.asset(statusImg[todayDiary.status], fit: BoxFit.contain,)
+                  ],
+                ),
+                margin: EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+              ),
+              Container(
+                margin: EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                padding: EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                decoration: BoxDecoration(
+                  color: Colors.white54,
+                  borderRadius: BorderRadius.circular(16)
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(todayDiary.title, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),),
+                    Container(height: 12,),
+                    Text(todayDiary.memo, style: TextStyle(fontSize: 18),),
+                  ],
+                ),
+              ),
+            ],
+          ))
+        ],
+      ),
+    );
   }
 
   Widget getHistoryPage(){
