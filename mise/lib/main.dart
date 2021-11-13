@@ -94,6 +94,32 @@ class _MyHomePageState extends State<MyHomePage> {
           Container(height: 20),
           Text("통합 환경 대기 지수 : ${data.first.khai}", textAlign: TextAlign.center,
               style: TextStyle(fontSize: 14, color: Colors.white)),
+
+          Container(
+            height: 200,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              children: List.generate(data.length, (idx){
+
+                Mise mise = data[idx];
+                int _status = getStatus(mise);
+
+                return Container(
+                  margin: EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text(mise.dataTime.replaceAll(" ", "\n"), style: TextStyle(color: Colors.white, fontSize: 12),textAlign: TextAlign.center,),
+                      Container(height: 8),
+                      Container(child: Image.asset(icon[_status], fit: BoxFit.contain),
+                      height: 50, width: 50,),
+                      Text("${mise.pm10}ug/m2", style: TextStyle(color: Colors.white),)
+                    ],
+                  )
+                );
+              }),
+            ),
+          )
         ],
       )
     );
