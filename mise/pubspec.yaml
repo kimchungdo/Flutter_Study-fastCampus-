@@ -36,6 +36,8 @@ dependencies:
   cupertino_icons: ^1.0.2
 
   http: ^0.12.2
+  admob_flutter: ^1.0.1
+  in_app_review: ^1.0.4
 
 dev_dependencies:
   flutter_test:

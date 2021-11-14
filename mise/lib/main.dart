@@ -1,9 +1,14 @@
+import 'package:admob_flutter/admob_flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:in_app_review/in_app_review.dart';
 import 'package:mise/data/api.dart';
 
 import 'data/mise.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  // Initialize without device test ids.
+  Admob.initialize();
   runApp(const MyApp());
 }
 
@@ -16,7 +21,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.red,
       ),
       home: const MyHomePage(),
     );
@@ -62,10 +67,16 @@ class _MyHomePageState extends State<MyHomePage> {
       body: getPage(),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-
+          String l = await Navigator.of(context).push(
+            MaterialPageRoute(builder: (ctx)=> LocationPage()));
+          if(l != null){
+            stationName = l;
+            getMiseData();
+          }
+          InAppReview.instance.requestReview();
         },
         tooltip: 'Increment',
-        child: const Icon(Icons.add),
+        child: const Icon(Icons.location_on),
       ),
     );
   }
@@ -95,31 +106,40 @@ class _MyHomePageState extends State<MyHomePage> {
           Text("통합 환경 대기 지수 : ${data.first.khai}", textAlign: TextAlign.center,
               style: TextStyle(fontSize: 14, color: Colors.white)),
 
-          Container(
-            height: 200,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              children: List.generate(data.length, (idx){
+          Expanded(
+            child: Container(
 
-                Mise mise = data[idx];
-                int _status = getStatus(mise);
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                children: List.generate(data.length, (idx){
 
-                return Container(
-                  margin: EdgeInsets.symmetric(vertical: 12, horizontal: 12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Text(mise.dataTime.replaceAll(" ", "\n"), style: TextStyle(color: Colors.white, fontSize: 12),textAlign: TextAlign.center,),
-                      Container(height: 8),
-                      Container(child: Image.asset(icon[_status], fit: BoxFit.contain),
-                      height: 50, width: 50,),
-                      Text("${mise.pm10}ug/m2", style: TextStyle(color: Colors.white),)
-                    ],
-                  )
-                );
-              }),
+                  Mise mise = data[idx];
+                  int _status = getStatus(mise);
+
+                  return Container(
+                    margin: EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Text(mise.dataTime.replaceAll(" ", "\n"), style: TextStyle(color: Colors.white, fontSize: 12),textAlign: TextAlign.center,),
+                        Container(height: 8),
+                        Container(child: Image.asset(icon[_status], fit: BoxFit.contain),
+                        height: 50, width: 50,),
+                        Text("${mise.pm10}ug/m2", style: TextStyle(color: Colors.white),)
+                      ],
+                    )
+                  );
+                }),
+              ),
             ),
-          )
+          ),
+          AdmobBanner(
+            adUnitId: AdmobBanner.testAdUnitId,
+              //adUnitId: "ca-app-pub-5662410330147661/5819450730",
+              adSize: AdmobBannerSize.BANNER
+          ),
+          Container(height: 30),
         ],
       )
     );
@@ -130,5 +150,42 @@ class _MyHomePageState extends State<MyHomePage> {
     data = await api.getMiseData(stationName);
     data.removeWhere((m) => m.pm10 == 0);
     setState(() {});
+  }
+}
+
+class LocationPage extends StatefulWidget{
+  @override
+  State<StatefulWidget> createState() {
+    // TODO: implement createState
+    return _LocationPageState();
+  }
+}
+
+class _LocationPageState extends State<LocationPage>{
+  List<String> locations = [
+    "관악구",
+    "구로구",
+    "동작구",
+    "마포구",
+    "강남구",
+    "강동구",
+    "영등포구",
+  ];
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(),
+      body: ListView(
+        children: List.generate(locations.length, (index){
+          return ListTile(
+            title: Text(locations[index]),
+            trailing: Icon(Icons.arrow_forward),
+            onTap: (){
+              Navigator.of(context).pop(locations[index]);
+            },
+          );
+        })
+      )
+    );
   }
 }
