@@ -1,4 +1,7 @@
+import 'package:cloth/data/api.dart';
 import 'package:flutter/material.dart';
+
+import 'data/weather.dart';
 
 void main() {
   runApp(const MyApp());
@@ -35,7 +38,14 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(),
       body: Center(),
       floatingActionButton: FloatingActionButton(
-        onPressed: (){},
+        onPressed: ()async{
+          final api = WeatherApi();
+          List<Weather> weather = await api.getWeather(1, 1, 20211116, "0800");
+          for(final w in weather){
+            print(w.date);
+            print(w.tmp);
+          }
+        },
         tooltip: 'Increment',
         child: const Icon(Icons.add),
       ),
