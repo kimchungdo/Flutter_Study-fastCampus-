@@ -1,4 +1,5 @@
 import 'package:cloth/data/api.dart';
+import 'package:cloth/util.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -36,6 +37,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   List<String> clothes = ["assets/img/shirts.png", "assets/img/short.png", "assets/img/pants.png" ];
   List<Weather> weather = [];
+  Weather current;
   List<String> sky = ["assets/img/sky1.png", "assets/img/sky2.png", "assets/img/sky3.png", "assets/img/sky4.png"];
   List<String> status = ["날이 아주 좋아요!", "산책하기 좋곘어요", "오늘은 흐리네요", "우산 꼭 챙기세요"];
   List<Color> color = [
@@ -46,11 +48,42 @@ class _MyHomePageState extends State<MyHomePage> {
   ];
   int level = 0;
 
+  void getWeather() async {
+
+    final api = WeatherApi();
+    weather = await api.getWeather(1, 1, 20211118, "0500");
+    final now = DateTime.now();
+    int time = int.parse("${now.hour}00");
+    weather.removeWhere((w) => w.time < time);
+    current = weather.first;
+    level = getLevel(current);
+    setState((){});
+  }
+
+  int getLevel(Weather w){
+    if(w.sky > 8){
+      return 3;
+    }
+    else if (w.sky> 5){
+      return 2;
+    }
+    else if (w.sky>2){
+      return 1;
+    }
+    return 0;
+  }
+
+  @override
+  void initState(){
+    super.initState();
+    getWeather();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: color[level],
-      body: Container(
+      body: weather.isEmpty ? Container(child: Text("날씨 정보를 불러오고 있어요")) : Container(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -70,13 +103,13 @@ class _MyHomePageState extends State<MyHomePage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                Text("26℃", style: TextStyle(
+                Text("${current.tmp}℃", style: TextStyle(
                 color: Colors.white,
                 fontSize: 28
             ),),
                 Column(
                   children: [
-                    Text("7월 16일", style: TextStyle(
+                    Text("${Utils.stringToDateTime(current.date).month}월 ${Utils.stringToDateTime(current.date).day}일", style: TextStyle(
                         color: Colors.white,
                         fontSize: 14
                     ),),
@@ -109,53 +142,54 @@ class _MyHomePageState extends State<MyHomePage> {
               }),
             ),
             Container(height: 30),
-            Container(
-              height: 150,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                children: List.generate(
-                  10,
-                    (idx){
-                    return Container(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Text("온도", style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 10
-                          ),),
-                          Text("강수확률", style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 10
-                          ),),
-                          Container(
-                            height: 50,
-                            width: 50,
-                            child: Image.asset("assets/img/sky1.png"),
-                            alignment: Alignment.centerRight,
-                          ),
-                          Text("0800", style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 10
-                          ),),
-                        ],
-                      )
-                    );
-                    }
+            Expanded(
+              child: Container(
+                height: 150,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  children: List.generate(
+                    weather.length,
+                      (idx){
+                      final w = weather[idx];
+                      int _level = getLevel(w);
+                      return Container(
+                        margin: EdgeInsets.symmetric(horizontal: 8),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Text("${w.tmp}℃", style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 10
+                            ),),
+                            Text("${w.pop}%", style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 10
+                            ),),
+                            Container(
+                              height: 50,
+                              width: 50,
+                              child: Image.asset(sky[_level]),
+                              alignment: Alignment.centerRight,
+                            ),
+                            Text("${w.time}", style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 10
+                            ),),
+                          ],
+                        )
+                      );
+                      }
+                  ),
                 ),
               ),
-            )
+            ),
+            Container(height: 50),
           ],
         )
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: ()async{
-          final api = WeatherApi();
-          List<Weather> weather = await api.getWeather(1, 1, 20211116, "0800");
-          for(final w in weather){
-            print(w.date);
-            print(w.tmp);
-          }
         },
         tooltip: 'Increment',
         child: const Icon(Icons.add),

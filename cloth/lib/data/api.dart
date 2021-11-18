@@ -11,7 +11,7 @@ class WeatherApi {
 
   Future<List<Weather>> getWeather(int x, int y, int date, String base_time) async {
     String url = "$BASE_URL/1360000/VilageFcstInfoService_2.0/getVilageFcst?"
-        "serviceKey=$key&pageNo=1&numOfRows=100&dataType=json&"
+        "serviceKey=$key&pageNo=1&numOfRows=130&dataType=json&"
         "base_date=$date&base_time=$base_time&nx=$x&ny=$y";
 
     final response = await http.get(url);
