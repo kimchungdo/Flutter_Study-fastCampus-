@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'data/weather.dart';
+import 'location.dart';
 
 void main() {
   runApp(const MyApp());
@@ -38,6 +39,7 @@ class _MyHomePageState extends State<MyHomePage> {
   List<String> clothes = ["assets/img/shirts.png", "assets/img/short.png", "assets/img/pants.png" ];
   List<Weather> weather = [];
   Weather current;
+  LocationData location = LocationData(lat: 37.498122, lng: 127.027565, name: "강남구", x: 0, y: 0);
   List<String> sky = ["assets/img/sky1.png", "assets/img/sky2.png", "assets/img/sky3.png", "assets/img/sky4.png"];
   List<String> status = ["날이 아주 좋아요!", "산책하기 좋곘어요", "오늘은 흐리네요", "우산 꼭 챙기세요"];
   List<Color> color = [
@@ -51,8 +53,35 @@ class _MyHomePageState extends State<MyHomePage> {
   void getWeather() async {
 
     final api = WeatherApi();
-    weather = await api.getWeather(1, 1, 20211118, "0500");
     final now = DateTime.now();
+    Map<String, int> xy = Utils.latLngToXY(location.lat, location.lng);
+
+    int time2 = int.parse("${now.hour}10");
+    String _time = "";
+    if(time2 > 2300){
+      _time = "2300";
+    }else if(time2 > 2000){
+      _time = "2000";
+    }
+    else if(time2 > 1700){
+      _time = "1700";
+    }
+    else if(time2 > 1400){
+      _time = "1400";
+    }
+    else if(time2 > 1100){
+      _time = "1100";
+    }else if(time2 > 800){
+      _time = "0800";
+    }else if(time2 > 500){
+      _time = "0500";
+    }
+    else{
+      _time = "0200";
+    }
+
+    weather = await api.getWeather(xy["nx"], xy["ny"], Utils.getFormatTime(DateTime.now()), _time);
+
     int time = int.parse("${now.hour}00");
     weather.removeWhere((w) => w.time < time);
     current = weather.first;
@@ -88,7 +117,7 @@ class _MyHomePageState extends State<MyHomePage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Container(height: 50),
-            Text("구로구", textAlign: TextAlign.center,
+            Text("${location.name}", textAlign: TextAlign.center,
               style: TextStyle(
                   color: Colors.white,
                 fontSize: 20
@@ -190,9 +219,17 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: ()async{
+          LocationData data = await Navigator.of(context).push(
+              MaterialPageRoute(builder: (ctx) => LocationPage())
+          );
+
+          if(data != null){
+            location = data;
+            getWeather();
+          }
         },
         tooltip: 'Increment',
-        child: const Icon(Icons.add),
+        child: const Icon(Icons.location_on),
       ),
     );
   }
