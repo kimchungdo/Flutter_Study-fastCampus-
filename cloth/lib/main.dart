@@ -1,8 +1,10 @@
+import 'package:cloth/cloth.dart';
 import 'package:cloth/data/api.dart';
 import 'package:cloth/util.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+import 'data/preference.dart';
 import 'data/weather.dart';
 import 'location.dart';
 
@@ -38,6 +40,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   List<String> clothes = ["assets/img/shirts.png", "assets/img/short.png", "assets/img/pants.png" ];
   List<Weather> weather = [];
+  List<ClothTmp> tmpCloth = [];
   Weather current;
   LocationData location = LocationData(lat: 37.498122, lng: 127.027565, name: "강남구", x: 0, y: 0);
   List<String> sky = ["assets/img/sky1.png", "assets/img/sky2.png", "assets/img/sky3.png", "assets/img/sky4.png"];
@@ -55,6 +58,9 @@ class _MyHomePageState extends State<MyHomePage> {
     final api = WeatherApi();
     final now = DateTime.now();
     Map<String, int> xy = Utils.latLngToXY(location.lat, location.lng);
+
+    final pref = Preference();
+    tmpCloth = await pref.getTmp();
 
     int time2 = int.parse("${now.hour}10");
     String _time = "";
@@ -85,6 +91,9 @@ class _MyHomePageState extends State<MyHomePage> {
     int time = int.parse("${now.hour}00");
     weather.removeWhere((w) => w.time < time);
     current = weather.first;
+
+
+    clothes = tmpCloth.firstWhere((t) => t.tmp < current.tmp).cloth;
     level = getLevel(current);
     setState((){});
   }
@@ -111,6 +120,18 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        actions: [
+          IconButton(onPressed: () async {
+            await Navigator.of(context).push(
+              MaterialPageRoute(builder: (ctx)=>ClothPage())
+            );
+            getWeather();
+          }, icon: Icon(Icons.category))
+        ]
+      ),
       backgroundColor: color[level],
       body: weather.isEmpty ? Container(child: Text("날씨 정보를 불러오고 있어요")) : Container(
         child: Column(
