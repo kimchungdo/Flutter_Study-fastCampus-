@@ -39,6 +39,7 @@ class DatabaseHelper {
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     date INTEGER DEFAULT 0,
     type INTEGER DEFAULT 0,
+    meal INTEGER DEFAULT 0,
     kcal INTEGER DEFAULT 0,
     time INTEGER DEFAULT 0,
     image String,
@@ -96,7 +97,7 @@ class DatabaseHelper {
     }else{
       //변경
       final _map = food.toMap();
-      return await db.update(foodTable, _map, whereArgs:  [food.id]);
+      return await db.update(foodTable, _map, where: "id = ?", whereArgs:  [food.id]);
     }
   }
 
@@ -143,7 +144,7 @@ class DatabaseHelper {
     }else{
       //변경
       final _map = workout.toMap();
-      return await db.update(workoutTable, _map, whereArgs:  [workout.id]);
+      return await db.update(workoutTable, _map, where: "id = ?", whereArgs:  [workout.id]);
     }
   }
 
@@ -176,5 +177,107 @@ class DatabaseHelper {
     return workouts;
 
   }
+
+  ///////
+
+
+
+  //데이터 추가, 변경, 검색, 삭제
+  Future<int> insertEyeBody (EyeBody workout) async {
+    Database db = await instance.database;
+
+    if(workout.id == null){
+      //생성
+      final _map = workout.toMap();
+
+      return await db.insert(bodyTable, _map);
+    }else{
+      //변경
+      final _map = workout.toMap();
+      return await db.update(bodyTable, _map, where: "id = ?", whereArgs:  [workout.id]);
+    }
+  }
+
+  Future<List<EyeBody>> queryEyeBodyByDate(int date) async {
+    Database db = await instance.database;
+
+    List<EyeBody> workouts = [];
+
+    final query = await db.query(bodyTable, where: "date = ?", whereArgs: [date]);
+
+    for(final q in query){
+      workouts.add(EyeBody.fromDB(q));
+    }
+
+    return workouts;
+
+  }
+
+  Future<List<EyeBody>> queryAllEyebody() async {
+    Database db = await instance.database;
+
+    List<EyeBody> workouts = [];
+
+    final query = await db.query(workoutTable);
+
+    for(final q in query){
+      workouts.add(EyeBody.fromDB(q));
+    }
+
+    return workouts;
+
+  }
+
+
+
+
+  //데이터 추가, 변경, 검색, 삭제
+  Future<int> insertWeight (Weight workout) async {
+    Database db = await instance.database;
+
+    List<Weight> _d = await queryWeightByDate(workout.date);
+
+    if(_d.isEmpty){
+      //생성
+      final _map = workout.toMap();
+
+      return await db.insert(weightTable, _map);
+    }else{
+      //변경
+      final _map = workout.toMap();
+      return await db.update(weightTable, _map, where: "date = ?", whereArgs:  [workout.date]);
+    }
+  }
+
+  Future<List<Weight>> queryWeightByDate(int date) async {
+    Database db = await instance.database;
+
+    List<Weight> workouts = [];
+
+    final query = await db.query(weightTable, where: "date = ?", whereArgs: [date]);
+
+    for(final q in query){
+      workouts.add(Weight.fromDB(q));
+    }
+
+    return workouts;
+
+  }
+
+  Future<List<Weight>> queryAllWeight() async {
+    Database db = await instance.database;
+
+    List<Weight> workouts = [];
+
+    final query = await db.query(weightTable);
+
+    for(final q in query){
+      workouts.add(Weight.fromDB(q));
+    }
+
+    return workouts;
+
+  }
+
 
 }
