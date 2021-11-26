@@ -3,7 +3,8 @@ import 'dart:math' as math;
 
 List<String> mealTime = ["아침", "점심", "저녁", "간식"];
 List<String> mealType = ["균형잡힌", "단백질", "탄수화물", "지방", "치팅"];
-
+List<String> wIntense = ["약하게", "적당히", "고강도"];
+List<String> wPart = ["이두", "삼두", "등", "가슴", "어깨", "하체"];
 
 
 

@@ -1,6 +1,7 @@
 import 'package:dietapp/style.dart';
 import 'package:dietapp/util.dart';
 import 'package:dietapp/view/food.dart';
+import 'package:dietapp/view/workout.dart';
 import 'package:flutter/material.dart';
 
 import 'data/data.dart';
@@ -71,7 +72,22 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                   TextButton(
                     child: Text("운동"),
-                    onPressed: (){},
+                    onPressed: ()async {                 //페이지 이동시 사용방법 암기하자 제발 좀
+                      await Navigator.of(context).push(
+                          MaterialPageRoute(builder: (ctx) => WorkoutAddPage(
+                            workout: Workout(
+                              date: Utils.getFormatTime(DateTime.now()),
+                              time: 60,
+                              kcal: 0,
+                              intense: 0,
+                              memo: "",
+                              type: 0,
+                              name: "",
+                              part: 0,
+                            ),
+                          ))
+                      );
+                    },
                   ),
                   TextButton(
                     child: Text("몸무게"),
