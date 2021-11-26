@@ -1,6 +1,8 @@
 import 'package:dietapp/data/data.dart';
+import 'package:dietapp/data/database.dart';
 import 'package:dietapp/style.dart';
 import 'package:flutter/material.dart';
+import 'package:multi_image_picker/multi_image_picker.dart';
 
 import '../util.dart';
 
@@ -22,31 +24,90 @@ class _FoodAddPageState extends State<FoodAddPage>{
   Food get food => widget.food;          //넘어온 푸드를 여기서 접근가능하게 만들어준다
   TextEditingController memoController = TextEditingController();          //텍스트 필드 사용시에는 꼭필요하다
 
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    memoController.text = food.memo;
+    super.initState();
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(
+        backgroundColor: bgColor,
+        iconTheme: IconThemeData(color: txtColor),                //백그라운드가 화이트이기 때문에 아이콘 테마를 설정해줘야한다. 버튼이 가려짐
+        elevation: 1.0,
+        actions: [
+          TextButton(
+            child: Text("저장"),
+            onPressed: (){
+              //저장하고 종료
+              final db = DatabaseHelper.instance;
+              food.memo = memoController.text;
+
+              db.insertFood(food);
+              Navigator.of(context).pop();
+            },
+          )
+        ],
+      ),
       body: Container(
         child: ListView.builder(
           itemBuilder: (ctx, idx){
             if(idx == 0){
               return Container(
-                /*child: InkWell(
-                    child: Image.asset(""),
-                    onTap: (){}
-                    ),*/
+                margin: EdgeInsets.symmetric(vertical: 16),
+                height: cardSize,
+                width: cardSize,
+                child: InkWell(
+                    child: AspectRatio(child: Align(child: food.image.isEmpty ? Image.asset("assets/img/food.jpg") :
+                    AssetThumb(asset: Asset(food.image, "food.jpg", 0, 0),
+                    width: cardSize.toInt(), height: cardSize.toInt(),),
+                    ),
+                    aspectRatio: 1/1,
+                    ),
+                    onTap: (){
+                      selectImage();
+                    },
+                    ),
               );
             }
             else if(idx == 1){
+              String _t = food.time.toString();
+              
+              String _m = _t.substring(_t.length - 2);
+              String _h = _t.substring(0, _t.length - 2);
+              TimeOfDay time = TimeOfDay(hour: int.parse(_h), minute: int.parse(_m));
+              //_t.replaceAll(_m, replace)
               return Container(
-                margin: EdgeInsets.symmetric(horizontal: 16),
+                margin: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
                 child: Column(
                   children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children:[
                           Text("식사시간"),
-                          Text("오전 11:32"),
+                          InkWell(child: Text("${time.hour > 11 ? "오후 " : "오전 "}${Utils.makeTwoDigit(time.hour % 12)}:${Utils.makeTwoDigit(time.minute)}"),
+                          onTap: () async {
+                            TimeOfDay _time = await showTimePicker(                     //시간을 가져온다
+                              context: context,
+                              initialTime: TimeOfDay.now(),
+                            );
+
+                            if(_time == null){
+                              return;
+                            }
+
+                            setState(() {
+                              food.time = int.parse("${_time.hour}${Utils.makeTwoDigit(_time.minute)}");           //디비에 저장가능한 형태로 만들기
+                            });
+
+
+
+                          },),
                         ],
                     ),
                     Container(height: 12),
@@ -84,7 +145,7 @@ class _FoodAddPageState extends State<FoodAddPage>{
             }
             else if (idx == 2){
               return Container(
-                  margin: EdgeInsets.symmetric(horizontal: 16),
+                  margin: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                   child: Column(
                       children: [
                         Row(
@@ -128,7 +189,7 @@ class _FoodAddPageState extends State<FoodAddPage>{
             }
             else if(idx == 3){
               return Container(
-                margin: EdgeInsets.symmetric(horizontal: 16),
+                margin: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -157,5 +218,20 @@ class _FoodAddPageState extends State<FoodAddPage>{
         )
       ),
     );
+  }
+
+
+  Future<void> selectImage() async {
+    final _img = await MultiImagePicker.pickImages(maxImages: 1, enableCamera: true);                     //이미지 가져오기 관련 권한은 androidmanifest에 있음
+
+    if(_img.length < 1){
+      return;
+    }
+
+    setState((){
+      food.image = _img.first.identifier;               //이미지 접근 가능한 키 같은 거임임
+    });
+
+
   }
 }
