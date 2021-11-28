@@ -6,3 +6,7 @@ Color ibgColor = Colors.grey.withOpacity(0.1);           //inactive(클릭되지
 Color txtColor = Colors.black;
 Color iTxtColor = Colors.black38;
 double cardSize = 130;
+
+
+Color color1 = Color(0xFF94a9ad);
+Color color2 = Color(0xFF8c4642);
