@@ -26,12 +26,14 @@ class _WorkoutAddPageState extends State<WorkoutAddPage>{
   TextEditingController nameController = TextEditingController();
   TextEditingController timeController = TextEditingController();
   TextEditingController calController = TextEditingController();
+  TextEditingController distanceController = TextEditingController();
 
   @override
   void initState() {
     // TODO: implement initState
     memoController.text = workout.memo;
     nameController.text = workout.name;
+    distanceController.text = workout.distance.toString();
     timeController.text = workout.time.toString();
     calController.text = workout.kcal.toString();
 
@@ -53,6 +55,23 @@ class _WorkoutAddPageState extends State<WorkoutAddPage>{
               //저장하고 종료
               final db = DatabaseHelper.instance;
               workout.memo = memoController.text;
+              workout.name = nameController.text;
+
+              if(timeController.text.isEmpty){
+                workout.time = 0;
+              }else{
+                workout.time = int.parse(timeController.text);
+              }
+              if(calController.text.isEmpty){
+                workout.kcal = 0;
+              }else{
+                workout.kcal = int.parse(calController.text);
+              }
+              if(distanceController.text.isEmpty){
+                workout.distance = 0;
+              }else{
+                workout.distance = int.parse(distanceController.text);
+              }
 
               db.insertWorkout(workout);
               Navigator.of(context).pop();
@@ -113,6 +132,7 @@ class _WorkoutAddPageState extends State<WorkoutAddPage>{
                                 child: TextField(
                                   keyboardType: TextInputType.number,              //숫자만 입력 가능하게 만든다
                                     controller: timeController,
+                                    textAlign: TextAlign.end,
                                     decoration: InputDecoration(
                                         border: UnderlineInputBorder(
                                             borderSide: BorderSide(
@@ -126,7 +146,52 @@ class _WorkoutAddPageState extends State<WorkoutAddPage>{
                               )
                             ],
                           ),
-                          Container(height: 12),
+
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text("운동 칼로리"),
+                              Container(
+                                child: TextField(
+                                    keyboardType: TextInputType.number,              //숫자만 입력 가능하게 만든다
+                                    controller: calController,
+                                    textAlign: TextAlign.end,
+                                    decoration: InputDecoration(
+                                        border: UnderlineInputBorder(
+                                            borderSide: BorderSide(
+                                                color: txtColor,
+                                                width: 0.5
+                                            )
+                                        )
+                                    )
+                                ),
+                                width: 70,
+                              )
+                            ],
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text("운동 거리"),
+                              Container(
+                                child: TextField(
+                                    keyboardType: TextInputType.number,              //숫자만 입력 가능하게 만든다
+                                    controller: distanceController,
+                                    textAlign: TextAlign.end,
+                                    decoration: InputDecoration(
+                                        border: UnderlineInputBorder(
+                                            borderSide: BorderSide(
+                                                color: txtColor,
+                                                width: 0.5
+                                            )
+                                        )
+                                    )
+                                ),
+                                width: 70,
+                              )
+                            ],
+                          ),
+
 
                         ],
                     ),
@@ -248,7 +313,7 @@ class _WorkoutAddPageState extends State<WorkoutAddPage>{
 
               return Container();
             },
-            itemCount: 4,
+            itemCount: 5,
           )
       ),
     );
