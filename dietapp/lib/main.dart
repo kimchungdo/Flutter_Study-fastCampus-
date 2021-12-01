@@ -6,6 +6,7 @@ import 'package:dietapp/view/workout.dart';
 import 'package:flutter/material.dart';
 
 import 'data/data.dart';
+import 'data/database.dart';
 
 void main() {
   runApp(const MyApp());
@@ -36,8 +37,33 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
 
-  int currentIndex = 0;           //BottomNavigation Bar 에 어떤 인덱스가 저장되어있는지를 확인, 이용
+  final dbHelper = DatabaseHelper.instance;
 
+  int currentIndex = 0;           //BottomNavigation Bar 에 어떤 인덱스가 저장되어있는지를 확인, 이용
+  DateTime dateTime = DateTime.now();
+
+  List<Workout> workouts = [];
+  List<Food> foods = [];
+  List<EyeBody> bodies = [];
+  List<Weight> weight = [];
+
+  void getHistories() async {
+    int _d = Utils.getFormatTime(dateTime);
+
+    foods = await dbHelper.queryFoodByDate(_d);
+    workouts = await dbHelper.queryWorkoutByDate(_d);
+    bodies = await dbHelper.queryEyeBodyByDate(_d);
+    //weight = await dbHelper.queryWeightByDate(_d);
+
+    setState((){});
+  }
+
+  @override
+  void initState(){
+    super.initState();
+
+    getHistories();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -69,6 +95,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           ),
                         ))
                       );
+                      getHistories();
                     },
                   ),
                   TextButton(
@@ -89,6 +116,7 @@ class _MyHomePageState extends State<MyHomePage> {
                             ),
                           ))
                       );
+                      getHistories();
                     },
                   ),
                   TextButton(
@@ -106,6 +134,7 @@ class _MyHomePageState extends State<MyHomePage> {
                             ),
                           ))
                       );
+                      getHistories();
                     },
                   ),
 
@@ -161,33 +190,33 @@ class _MyHomePageState extends State<MyHomePage> {
       child: Column(
         children: [
           Container(
-            child: ListView.builder(               //그냥 리스트뷰 빌더를 사용하게 되면 오류 발생 Container를 통해 감싸서 높이를 지정해줘야만한다
+            child: foods.isEmpty ? Image.asset("assets/img/food.jpg"):ListView.builder(               //그냥 리스트뷰 빌더를 사용하게 되면 오류 발생 Container를 통해 감싸서 높이를 지정해줘야만한다
               itemBuilder: (ctx,idx) {
                 return Container(
                   height: cardSize,
                   width: cardSize,
-                  color: mainColor,
+                  child: MainFoodCard(food: foods[idx]),
                 );
               },
-              itemCount: 3,
+              itemCount: foods.length,
               scrollDirection: Axis.horizontal,
             ),
-            height: cardSize + 20,
+            height: cardSize,
           ),
 
           Container(
-            child: ListView.builder(               //그냥 리스트뷰 빌더를 사용하게 되면 오류 발생 Container를 통해 감싸서 높이를 지정해줘야만한다
+            child: workouts.isEmpty ? Image.asset("assets/img/workout.png") : ListView.builder(               //그냥 리스트뷰 빌더를 사용하게 되면 오류 발생 Container를 통해 감싸서 높이를 지정해줘야만한다
               itemBuilder: (ctx,idx) {
                 return Container(
                   height: cardSize,
                   width: cardSize,
-                  color: mainColor,
+                  child: MainWorkoutCard(workout: workouts[idx],),
                 );
               },
-              itemCount: 3,
+              itemCount: workouts.length,
               scrollDirection: Axis.horizontal,
             ),
-            height: cardSize + 20,
+            height: cardSize,
           ),
 
 
@@ -197,7 +226,18 @@ class _MyHomePageState extends State<MyHomePage> {
                 if(idx == 0){
                   //몸무게
                 }else{
-                  //눈바디
+                  if(bodies.isEmpty){
+                    return Container(
+                      height: cardSize,
+                      width: cardSize,
+                      color: mainColor,
+                    );
+                  }
+                  return Container(
+                    height: cardSize,
+                    width: cardSize,
+                    child: MainEyeBodyCard(eyeBody: bodies[0],),           //하나바껭없음
+                  );
                 }
                 return Container(
                   height: cardSize,

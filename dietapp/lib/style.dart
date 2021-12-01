@@ -5,7 +5,7 @@ Color bgColor = Colors.white;
 Color ibgColor = Colors.grey.withOpacity(0.1);           //inactive(클릭되지 않은, 활성화 되지 않은)            //withOpacity: 투명도 추가하기
 Color txtColor = Colors.black;
 Color iTxtColor = Colors.black38;
-double cardSize = 130;
+double cardSize = 150;
 
 
 Color color1 = Color(0xFF94a9ad);

@@ -322,3 +322,63 @@ class _WorkoutAddPageState extends State<WorkoutAddPage>{
 
 
 }
+
+
+class MainWorkoutCard extends StatelessWidget {
+  final Workout workout;
+
+  MainWorkoutCard({Key key, this.workout}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: EdgeInsets.all(8),
+      padding: EdgeInsets.all(8),
+      decoration: BoxDecoration(                     //박스모양으로 묶어주기기
+        borderRadius: BorderRadius.circular(12),
+        color: bgColor,
+        boxShadow: [                       //음영 넣어주기
+          BoxShadow(
+            blurRadius: 4,
+            spreadRadius: 4,
+            color: Colors.black12,
+          )
+        ]
+      ),
+      child: ClipRRect(
+        child: AspectRatio(
+          child: Container(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      child: Image.asset("assets/img/${workout.type}.png"),
+                      height: 50, width: 50,
+                      decoration: BoxDecoration(
+                        color: ibgColor,
+                        borderRadius: BorderRadius.circular(70),
+                      ),
+                    ),
+                    Expanded(child: Text("${Utils.makeTwoDigit(workout.time ~/ 60)}:"
+                        "${Utils.makeTwoDigit(workout.time % 60)}", textAlign: TextAlign.end,),)
+                  ],
+                ),
+                Container(height:8),
+                Expanded(
+                  child: Text(workout.name),
+                ),
+                Text(workout.kcal == 0 ? "" : "${workout.kcal}kcal"),
+                Text(workout.distance == 0 ? "" : "${workout.distance}km"),
+              ],
+            ),
+          ),
+          aspectRatio: 1,
+        )
+      )
+    );
+  }
+
+
+}

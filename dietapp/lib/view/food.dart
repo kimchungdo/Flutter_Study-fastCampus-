@@ -235,3 +235,68 @@ class _FoodAddPageState extends State<FoodAddPage>{
 
   }
 }
+
+
+class MainFoodCard extends StatelessWidget {
+  final Food food;
+  MainFoodCard({Key key, this.food}) : super(key: key);
+  @override
+  Widget build(BuildContext context) {
+
+    String _t = food.time.toString();
+
+    String _m = _t.substring(_t.length - 2);
+    String _h = _t.substring(0, _t.length - 2);
+    TimeOfDay time = TimeOfDay(hour: int.parse(_h), minute: int.parse(_m));
+
+    return Container(
+      margin: EdgeInsets.all(8),
+      child: ClipRRect(                     //전체적으로 둥글게 만들어줌
+        borderRadius: BorderRadius.circular(12),
+        child: AspectRatio(                   //정사각형 모양을 1대 1로 만들어주기 위함
+            child: Stack(
+              children: [
+                Positioned.fill(                          //스택의 전체를 채우겠다는 것을 의미함
+                  child: AssetThumb(asset: Asset(food.image, "food.jpg", 0, 0),
+                    width: cardSize.toInt(), height: cardSize.toInt()),
+                ),
+
+                Positioned.fill(
+                  child: Container(
+                    color: Colors.black38,
+                  ),
+                ),
+
+                Positioned.fill(
+                  child: Container(
+                    child: Text("${time.hour > 11 ? "오후 " : "오전 "}${Utils.makeTwoDigit(time.hour % 12)}:${Utils.makeTwoDigit(time.minute)}", style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      fontSize: 16,
+                    ),
+                      textAlign: TextAlign.center,
+                    ),
+                    alignment: Alignment.center,
+                  )
+                ),
+
+                Positioned(
+                  right: 6,
+                  bottom: 6,
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    child: Text(mealTime[food.meal], style: TextStyle(color: Colors.white, fontSize: 10),),
+                    decoration: BoxDecoration(
+                      color: mainColor,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  )
+                )
+              ],
+            ),
+          aspectRatio: 1,),
+      ),
+    );
+  }
+
+}

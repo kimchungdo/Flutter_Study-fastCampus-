@@ -123,3 +123,37 @@ class _EyeBodyAddPageState extends State<EyeBodyAddPage>{
 
   }
 }
+
+class MainEyeBodyCard extends StatelessWidget {
+  final EyeBody eyeBody;
+  MainEyeBodyCard({Key key, this.eyeBody}) : super(key: key);
+  @override
+  Widget build(BuildContext context) {
+
+    return Container(
+      margin: EdgeInsets.all(8),
+      child: ClipRRect(                     //전체적으로 둥글게 만들어줌
+        borderRadius: BorderRadius.circular(12),
+        child: AspectRatio(                   //정사각형 모양을 1대 1로 만들어주기 위함
+          child: Stack(
+            children: [
+              Positioned.fill(                          //스택의 전체를 채우겠다는 것을 의미함
+                child: AssetThumb(asset: Asset(eyeBody.image, "food.jpg", 0, 0),
+                    width: cardSize.toInt(), height: cardSize.toInt()),
+              ),
+
+              Positioned.fill(
+                child: Container(
+                  color: Colors.black12,
+                ),
+              ),
+
+
+            ],
+          ),
+          aspectRatio: 1,),
+      ),
+    );
+  }
+
+}

@@ -76,7 +76,7 @@ class DatabaseHelper {
     date INTEGER DEFAULT 0,
     weight INTEGER DEFAULT 0,
     fat INTEGER DEFAULT 0,
-    muscle INTEGER DEFAULT 0,
+    muscle INTEGER DEFAULT 0
     )
     """);
 
@@ -86,7 +86,7 @@ class DatabaseHelper {
     if(newVersion == 2){                          //기존에 만들었던 테이블에 두가지를 추가해 줄 수 있음 업그레이드해주는거임
       await db.execute("""
       ALTER TABLE $workoutTable
-      ADD type INTEGER DEFAULT 0,
+      ADD type INTEGER DEFAULT 0
       """);
 
       await db.execute("""
