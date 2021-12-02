@@ -5,13 +5,25 @@ import 'package:dietapp/view/food.dart';
 import 'package:dietapp/view/workout.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 import 'data/data.dart';
 import 'data/database.dart';
+import 'package:timezone/timezone.dart' as tz;              //알림 임포트
+import 'package:timezone/data/latest.dart' as tz;           //먼저 임포트 알림
 
-void main() {
+
+FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;            //그다음에 변수생성 알림
+void main() async {
   runApp(const MyApp());
+
+  tz.initializeTimeZones();
+  
+  const AndroidNotificationChannel androidNotificationChannel = AndroidNotificationChannel("fastcampus", "dietapp", "dietapp");              //알림 관련 채널을 생성
+  flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+
+  await flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()?.createNotificationChannel(androidNotificationChannel);  //플랫폼 내에 채널을 만들어라
 }
 
 class MyApp extends StatelessWidget {
@@ -45,12 +57,39 @@ class _MyHomePageState extends State<MyHomePage> {
   DateTime dateTime = DateTime.now();
 
   List<Workout> workouts = [];
+  List<Workout> allWorkouts = [];
   List<Food> foods = [];
+  List<Food> allFoods = [];
   List<EyeBody> bodies = [];
+  List<EyeBody> allBodies = [];
   List<Weight> weight = [];
   List<Weight> weights = [];
 
-  void getHistories() async {
+
+  //알림 초기화 및 알림 설정
+
+  Future<bool> initNotification() async {
+    if(flutterLocalNotificationsPlugin == null){
+      flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+    }
+
+    var initSettingAndroid = AndroidInitializationSettings("app_icon");
+    var initiOSSetting = IOSInitializationSettings();
+
+    var initSetting = InitializationSettings(
+      android: initSettingAndroid, iOS: initiOSSetting
+    );
+
+    await flutterLocalNotificationsPlugin.initialize(initSetting, onSelectNotification: (payload) async {
+
+    });
+
+    setScheduling();
+    return true;
+
+  }
+
+ void getHistories() async {
     int _d = Utils.getFormatTime(dateTime);
 
     foods = await dbHelper.queryFoodByDate(_d);
@@ -58,6 +97,9 @@ class _MyHomePageState extends State<MyHomePage> {
     bodies = await dbHelper.queryEyeBodyByDate(_d);
     weight = await dbHelper.queryWeightByDate(_d);
     weights = await dbHelper.queryAllWeight();
+    allFoods = await dbHelper.queryAllFood();
+    allWorkouts = await dbHelper.queryAllWorkout();
+    allBodies = await dbHelper.queryAllEyebody();
 
     if(weight.isNotEmpty){
       final w = weight.first;
@@ -78,6 +120,24 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
 
     getHistories();
+    initNotification();
+  }
+
+  void setScheduling(){                                                                   //알림 알람 스케쥴링 중요도 우선순위 등
+    var android = AndroidNotificationDetails("fastcampus", "dietapp", "dietapp",
+      importance: Importance.max,
+      priority: Priority.max
+    );
+    var ios = IOSNotificationDetails();
+
+    NotificationDetails detail = NotificationDetails(
+      iOS: ios,
+      android: android,
+    );
+    
+    flutterLocalNotificationsPlugin.zonedSchedule(0, "오늘의 다이어트를 기록해주세요!", "앱을 실행해 주세요!", tz.TZDateTime.from(DateTime.now().add(Duration(seconds: 10)), tz.local) //앱을 키고 10초 뒤에 오는지 확인
+        , detail, uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime, androidAllowWhileIdle: true, payload: "dietapp",
+        matchDateTimeComponents: DateTimeComponents.time);                     //이게 중요한거임 매일매일 몇시에 알람이 오는가 => time/          dayOfWeekAndTime 은 매주 화요일 5시 등 이렇게
   }
 
   @override
@@ -86,7 +146,7 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       appBar: AppBar(),
       body: getPage(),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: ![0,1].contains(currentIndex)? Container() : FloatingActionButton(
         onPressed: (){
           showModalBottomSheet(context: context, backgroundColor: bgColor,              //FAB버튼 클릭시 등장하는 선택가능한 클릭창 발현
           builder: (ctx){
@@ -198,6 +258,8 @@ class _MyHomePageState extends State<MyHomePage> {
       return getHistoryWidget();
     }else if(currentIndex == 2){
       return getWeightWidget();
+    }else if(currentIndex==3){
+      return getStaticsticWidget();
     }
 
     return Container();
@@ -644,4 +706,198 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+
+  Widget getStaticsticWidget(){
+    return Container(
+      child: ListView.builder(
+        itemBuilder: (ctx, idx){
+          if(idx == 0) {
+              List<FlSpot> spots = [];
+
+              for(final w in allWorkouts){
+                if(chartIndex == 0){
+                  //몸무게
+                  spots.add(FlSpot(w.date.toDouble(), w.time.toDouble()));
+                }else if(chartIndex == 1){
+                  //근육량
+                  spots.add(FlSpot(w.date.toDouble(), w.kcal.toDouble()));
+                }else{
+                  //지방
+                  spots.add(FlSpot(w.date.toDouble(), w.distance.toDouble()));
+                }
+              }
+
+              return Container(
+                  margin: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          InkWell(
+                            child: Container(
+                              child: Text("운동 시간", style: TextStyle(
+                                  color: chartIndex == 0 ? Colors.white : iTxtColor
+                              ),),
+                              decoration: BoxDecoration(
+                                  color: chartIndex == 0 ? mainColor : ibgColor,
+                                  borderRadius: BorderRadius.circular(8)
+                              ),
+                              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            ),
+                            onTap: () async {
+                              setState(() {
+                                chartIndex = 0;
+                              });
+                            },
+                          ),
+                          Container(width: 8),
+                          InkWell(
+                            child: Container(
+                              child: Text("칼로리", style: TextStyle(
+                                  color: chartIndex == 1 ? Colors.white : iTxtColor
+                              ),),
+                              decoration: BoxDecoration(
+                                  color: chartIndex == 1 ? mainColor : ibgColor,
+                                  borderRadius: BorderRadius.circular(8)
+                              ),
+                              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            ),
+                            onTap: () async {
+                              setState(() {
+                                chartIndex = 1;
+                              });
+                            },
+                          ),
+                          Container(width: 8),
+                          InkWell(
+                            child: Container(
+                              child: Text("거리", style: TextStyle(
+                                  color: chartIndex == 2 ? Colors.white : iTxtColor
+                              ),),
+                              decoration: BoxDecoration(
+                                  color: chartIndex == 2 ? mainColor : ibgColor,
+                                  borderRadius: BorderRadius.circular(8)
+                              ),
+                              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            ),
+                            onTap: () async {
+                              setState(() {
+                                chartIndex = 2;
+                              });
+                            },
+                          ),
+
+                        ],
+                      ),
+                      Container(
+                          height: 300,
+                          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+                          padding: EdgeInsets.symmetric(horizontal: 25,vertical: 16),
+                          decoration: BoxDecoration(
+                              color: bgColor,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  blurRadius: 4,
+                                  spreadRadius: 4,
+                                  color: Colors.black12,
+                                )
+                              ]
+                          ),
+                          child: spots.isEmpty ? Container() : LineChart(
+                              LineChartData(
+                                  lineBarsData: [
+                                    LineChartBarData(
+                                        spots: spots,
+                                        colors: [mainColor]
+                                    )
+                                  ],
+                                  gridData: FlGridData(
+                                      show: false
+                                  ),
+                                  borderData: FlBorderData(
+                                      show: false
+                                  ),
+                                  lineTouchData: LineTouchData(
+                                      touchTooltipData: LineTouchTooltipData(
+                                          getTooltipItems: (spots){
+                                            return[
+                                              LineTooltipItem(
+                                                  "${spots.first.y}", TextStyle(color: mainColor)
+                                              )
+                                            ];
+                                          }
+                                      )
+                                  ),
+                                  titlesData: FlTitlesData(
+                                    bottomTitles: SideTitles(
+                                        showTitles: true,
+                                        getTitles: (value){
+                                          DateTime date = Utils.stringToDateTime(value.toInt().toString());
+                                          return "${date.day}일";
+
+                                        }
+                                    ),
+                                    leftTitles: SideTitles(
+                                        showTitles: false
+                                    ),
+                                  )
+                              )
+                          )
+                      )
+                    ],
+                  )
+              );
+            } else if (idx == 1){
+            return Container(
+              height: cardSize,
+              child: ListView.builder(
+                itemBuilder: (ctx,_idx) {
+                  return Container(
+                    height: cardSize,
+                    width: cardSize,
+                    child: MainFoodCard(food: allFoods[_idx],),
+                  );
+                },
+                itemCount: allFoods.length,
+                scrollDirection: Axis.horizontal,
+              ),
+            );
+          }else if (idx == 2){
+            return Container(
+              height: cardSize,
+              child: ListView.builder(
+                itemBuilder: (ctx,_idx) {
+                  return Container(
+                    height: cardSize,
+                    width: cardSize,
+                    child: MainWorkoutCard(workout: allWorkouts[_idx],),
+                  );
+                },
+                itemCount: allWorkouts.length,
+                scrollDirection: Axis.horizontal,
+              ),
+            );
+          }else if (idx == 3){
+            return Container(
+              height: cardSize,
+              child: ListView.builder(
+                itemBuilder: (ctx,_idx) {
+                  return Container(
+                    height: cardSize,
+                    width: cardSize,
+                    child: MainEyeBodyCard(eyeBody: allBodies[_idx],),
+                  );
+                },
+                itemCount: allBodies.length,
+                scrollDirection: Axis.horizontal,
+              ),
+            );
+          }
+          return Container();
+        },
+        itemCount: 4,
+      )
+    );
+  }
 }
