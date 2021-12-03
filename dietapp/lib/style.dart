@@ -7,6 +7,30 @@ Color txtColor = Colors.black;
 Color iTxtColor = Colors.black38;
 double cardSize = 150;
 
+MaterialColor mainMColor = MaterialColor(
+mainColor.value,
+<int, Color>{
+50: mainColor,
+100: mainColor,
+200: mainColor,
+300: mainColor,
+400: mainColor,
+500: mainColor,
+600: mainColor,
+700: mainColor,
+800: mainColor,
+900: mainColor,
+},
+);
 
-Color color1 = Color(0xFF94a9ad);
-Color color2 = Color(0xFF8c4642);
+
+
+TextStyle sTS = TextStyle(fontSize: 12);
+TextStyle mTS = TextStyle(fontSize: 16);
+TextStyle lTS = TextStyle(fontSize: 20);           //디자인을 통일 시키기 위함 4-5개 정도 이용하여 일괄적으로 이용하는 것이 좋음
+
+
+void changeToDarkMode(){
+  bgColor = Color(0xFF3a3a3c);
+  txtColor = Colors.white;
+}

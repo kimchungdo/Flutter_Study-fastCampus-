@@ -13,10 +13,16 @@ import 'data/database.dart';
 import 'package:timezone/timezone.dart' as tz;              //알림 임포트
 import 'package:timezone/data/latest.dart' as tz;           //먼저 임포트 알림
 
+import 'package:intl/date_symbol_data_local.dart';                //한국어 달력 설정 관련
+
 
 FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;            //그다음에 변수생성 알림
 void main() async {
-  runApp(const MyApp());
+  initializeDateFormatting().then((_){              //한국어 달력 설정 관련
+    runApp(const MyApp());
+  });
+
+
 
   tz.initializeTimeZones();
   
@@ -35,7 +41,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: mainMColor,
       ),
       home: const MyHomePage(),
     );
@@ -144,10 +150,19 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
 
     return Scaffold(
-      appBar: AppBar(),
+      appBar: PreferredSize(child: AppBar(),                       //앱바 없애는 방법임
+        preferredSize: Size.fromHeight(0),
+      ),
+      backgroundColor: bgColor,
       body: getPage(),
       floatingActionButton: ![0,1].contains(currentIndex)? Container() : FloatingActionButton(
         onPressed: (){
+          setState(() {
+            changeToDarkMode();
+          });
+
+
+
           showModalBottomSheet(context: context, backgroundColor: bgColor,              //FAB버튼 클릭시 등장하는 선택가능한 클릭창 발현
           builder: (ctx){
             return SizedBox(
@@ -219,7 +234,7 @@ class _MyHomePageState extends State<MyHomePage> {
           });
         },
         tooltip: 'Increment',
-        child: const Icon(Icons.add),
+        child: const Icon(Icons.add, color: Colors.white),
       ),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
@@ -247,6 +262,8 @@ class _MyHomePageState extends State<MyHomePage> {
             currentIndex = idx;                      //선택되었을때 idx(현재 페이지의 인덱스번호)를 커렌트에 넣어주며 페이지 전환작업을 상태설정함
           });
         },
+        backgroundColor: bgColor,
+        unselectedItemColor: txtColor,
       ),
     );
   }
@@ -339,7 +356,8 @@ class _MyHomePageState extends State<MyHomePage> {
                           children: [
                             Text("${w.weight}kg", style: TextStyle(
                               fontSize: 30,
-                              fontWeight: FontWeight.bold
+                              fontWeight: FontWeight.bold,
+                              color: txtColor
                             ),)
                           ],
                         )
@@ -385,6 +403,7 @@ class _MyHomePageState extends State<MyHomePage> {
           if(idx == 0){
             return Container(
               child: TableCalendar(
+                locale: "ko-KR",
                 initialSelectedDay: dateTime,
                 calendarController: calendarController,
                 onDaySelected: (date, events, holidays){
@@ -426,6 +445,7 @@ class _MyHomePageState extends State<MyHomePage> {
             if(idx == 0){
               return Container(
                   child: TableCalendar(
+                    locale: "ko-KR",
                     key: Key("weightCalendar"),
                     initialSelectedDay: dateTime,
                     calendarController: weightCalendarController,
